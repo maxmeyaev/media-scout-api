@@ -7,8 +7,6 @@ const utils = require('../utils/utils');
 const bcrypt = require('bcryptjs');
 const userTable = 'madiascout-user';
 
-let dynamoUser;
-
 async function register (userInfo) {
   const name = userInfo.name;
   const email = userInfo.email;
@@ -20,7 +18,7 @@ async function register (userInfo) {
     });
   }
 
-  await getUser(username.toLowerCase().trim());
+  const dynamoUser = await getUser(username.toLowerCase().trim());
   
   // console.log(dynamoUser.username)
   if (dynamoUser && dynamoUser.username) {
@@ -65,13 +63,16 @@ async function getUser (username) {
       username: username
     }
   };
-  return await dynamoDB.get(params, function(err, data) {
-  if (err) console.log(err);
-  else {
-    console.log(data.Item)
-    dynamoUser = data.Item;
-  }
-});
+  const res = await dynamoDB.get(params);
+  console.log("hello", res.Item)
+  
+  return res.Item;
+//   return await dynamoDB.get(params, function(err, data) {
+//       if (err)return(err);
+//       console.log(data.Item);
+//       return data.Item;
+      
+// });
 }
 
 
