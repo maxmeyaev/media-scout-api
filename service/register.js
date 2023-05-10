@@ -31,7 +31,8 @@ async function register (userInfo) {
     name: name,
     email: email,
     username: username.toLowerCase().trim(),
-    password: encryptedPW
+    password: encryptedPW,
+    movies: []
   };
 
   const saveUserResponse = await saveUser(user);
@@ -43,18 +44,6 @@ async function register (userInfo) {
 
   return utils.buildResponse(200, { username: username });
 }
-// async function getUser (username) {
-//   const params = {
-//     TableName: userTable,
-//     Key: {
-//       username: username
-//     }
-//   };
-//   return await dynamoDB.get(params, function(err, data) {
-//   if (err) console.log(err);
-//   else console.log("Hello, this is data",data);
-// });
-// }
 
 async function getUser (username) {
   const params = {
@@ -67,12 +56,7 @@ async function getUser (username) {
   console.log("hello", res.Item)
   
   return res.Item;
-//   return await dynamoDB.get(params, function(err, data) {
-//       if (err)return(err);
-//       console.log(data.Item);
-//       return data.Item;
-      
-// });
+
 }
 
 
