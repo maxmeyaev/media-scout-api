@@ -60,9 +60,6 @@ async function getUser (username) {
 }
 
 
-
-
-
 async function saveUser (user) {
   const params = {
     TableName: userTable,
