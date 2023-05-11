@@ -67,9 +67,9 @@ async function updateMovies(username, movieID){
 
     if(index === -1){
         params = {
-            TableName: 'madiascout-user',
+            TableName: userTable,
             Key:{
-                username:"bingbong5"
+                username:username
             },
             UpdateExpression: 'SET movies = list_append(movies, :vals)',
             ExpressionAttributeValues: {
@@ -81,11 +81,10 @@ async function updateMovies(username, movieID){
 
     }
     else{
-        // console.log("hello ${index}")
         params = {
-            TableName: 'madiascout-user',
+            TableName: userTable,
             Key:{
-                username:"bingbong5"
+                username:username
             },
 
             UpdateExpression: `REMOVE movies[${index}]`,
