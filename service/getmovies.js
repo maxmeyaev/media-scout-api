@@ -23,6 +23,15 @@ async function getUser (username) {
 
 async function getMovies(getMovieBody){
     const username = getMovieBody.username;
+    const token = getMovieBody.token;
+
+    const verified = utils.verify(username,token);
+
+    if(!verified){
+        return utils.buildResponse(401,{
+            message: "Please login"
+        });
+    }
 
     const dynamoUser = await getUser(username.toLowerCase().trim());
 
@@ -33,7 +42,8 @@ async function getMovies(getMovieBody){
     }
 
     return utils.buildResponse(200,{
-        movies: dynamoUser.movies
+        movies: dynamoUser.movies,
+        message: "success"
     });
 
 }

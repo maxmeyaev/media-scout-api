@@ -1,6 +1,5 @@
 const { DynamoDB} = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocument} = require("@aws-sdk/lib-dynamodb");
-const jwt = require('jsonwebtoken');
 const utils = require('../utils/utils');
 
 const client = new DynamoDB({region:'us-east-2'});
@@ -8,22 +7,12 @@ const dynamoDB = DynamoDBDocument.from(client);
 
 const userTable = 'madiascout-user';
 
-
-function verify(username, token){
-    return jwt.verify(token, process.env.JWT_SECRET_KEY, (error, response)=>{
-        if(error || response.username !== username){
-            return false;
-        }
-        return true;
-    })
-}
-
 async function addMovie(movieBody){
     const username = movieBody.username.toLowerCase().trim();
     const token = movieBody.token;
     const movieID = movieBody.movieID;
 
-    const verified = verify(username,token);
+    const verified = utils.verify(username,token);
 
     if(!verified){
         return utils.buildResponse(401,{
