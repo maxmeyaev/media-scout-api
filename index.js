@@ -2,6 +2,7 @@ const registerService = require('./service/register')
 const loginService = require('./service/login')
 const verifyService = require('./service/verify')
 const addMovieService = require('./service/addmovie')
+const getMovieService = require('./service/getmovies')
 const util = require('./utils/utils')
 
 const healthPath = '/health';
@@ -9,6 +10,7 @@ const registerPath = '/register';
 const loginPath = '/login';
 const verifyPath = '/verify';
 const addMoviePath = '/useraddmovie';
+const getMoviesPath = '/getmovies';
 
 
 exports.handler = async(event) => {
@@ -34,6 +36,10 @@ exports.handler = async(event) => {
       const movieBody = JSON.parse(event.body);
       response = addMovieService.addMovie(movieBody);
       break;
+    case event.httpMethod === 'GET' && event.path === getMoviesPath:
+      const getMovieBody = JSON.parse(event.body);
+      response = getMovieService.getMovies(getMovieBody);
+      break
 
     default:
       response = util.buildResponse(404, '303 Not Found');
