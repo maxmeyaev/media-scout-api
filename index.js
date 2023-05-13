@@ -37,7 +37,7 @@ exports.handler = async(event) => {
       response = addMovieService.addMovie(movieBody);
       break;
     case event.httpMethod === 'GET' && event.path === getMoviesPath:
-      const getMovieBody = JSON.parse(event.body);
+      const getMovieBody = event.headers;
       response = getMovieService.getMovies(getMovieBody);
       break
 
