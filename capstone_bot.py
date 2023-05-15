@@ -5,8 +5,11 @@ import boto3
 from botocore.exceptions import ClientError
 import threading
 import time
+import json
 
 load_dotenv()
+api_key = os.getenv('API_KEY')
+items = []
 
 sns_client = boto3.client(
     'sns',
@@ -28,11 +31,12 @@ dynamodb = boto3.resource('dynamodb',
 )
 
 api_key = os.getenv('API_KEY')
-api_url = ""
+first_half_api_url = "https://api.themoviedb.org/3/movie/"
+second_half_api_url = "/watch/providers?api_key="
 
 
 def main():
-
+    global items
     # create db object
     table = dynamodb.Table('subscriptions')
 
@@ -41,35 +45,29 @@ def main():
     items = scan_table(table)
 
 
+    def updateData(items):
+        while(True):
+            items = scan_table(table)
+            time.sleep(1800)
 
-    # def updateData(items):
-    #     while(True):
-    #         items.clear()
-    
-    #         #create db object
-        
-    #         table = dynamodb.Table('subscriptions')
-
-    #         #use db to get list of movies/shows
-
-    #         items = scan_table(table)
-
-    #         time.sleep(3600)
-
-    # x = threading.Thread(target=updateData, args=(items))
-    # x.start()
+    x = threading.Thread(target=updateData, args=(items,))
+    x.start()
 
     counter = 0
     while(True):
         while(len(items) != 0):
+            time.sleep(1)
             if counter > len(items) -1:
                 counter = 0
 
             print(items)
-            movie = items[counter]['Movie']
+            if(counter > len(items)-1):
+                continue
+            movieID = items[counter]['MovieID']
             services = items[counter]['Services']
+            movie = items[counter]['Movie']
 
-            services_available = isavailable(movie, services)
+            services_available = isavailable(movie, movieID, services)
 
             if(not services_available):
                 counter+=1
@@ -91,9 +89,6 @@ def publish(details, sns_client, arn):
 def delete_item(item,table):
     table.delete_item(
         Key={
-            'Movie': item['Movie'],
-            'Email': item['Email'],
-            'Services' : item['Services'],
             'Arn' : item['Arn']
         }
     )
@@ -117,12 +112,22 @@ def delete_topic(sns, arn):
         print("Couldn't delete topic %s.", topic.arn)
 
 
-def isavailable(movie, services):
-    response = requests.get(api_url+movie)
-    available_services = response.json()['Services']
+def isavailable(movie, movieID, services):
+    response = requests.get(first_half_api_url + movieID + second_half_api_url + api_key).json()
+    available_services = {}
+
+    try:
+        flatrate = response['results']['US']['flatrate']
+        for item in flatrate:
+            available_services[item['provider_id']] = item['provider_name']
+    except:
+        return None
+
+
+    print(available_services)
 
     set1 = set(services)
-    set2 = set(available_services)
+    set2 = set(available_services.keys())
 
     intersection = list(set1.intersection(set2))
     if not intersection:
@@ -131,12 +136,23 @@ def isavailable(movie, services):
     res = f"{movie} is available to watch on"
 
     for service in intersection:
-        res += " " + service
+        res += " " + available_services[service] + ','
     
     res += '.'
 
-
+    print(res)
     return res 
 
 if __name__ == "__main__":
     main()
+
+# response = requests.get(first_half_api_url + "1003579" + second_half_api_url + api_key).json()
+# available_services = {}
+
+# flatrate = response['results']['US']['buy']
+# for item in flatrate:
+#     available_services[item['provider_id']] = item['provider_name']
+
+# print(available_services.keys())
+
+# print(json.dumps(response['results']['US']['flatrate'], indent =2))
